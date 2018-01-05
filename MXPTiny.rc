@@ -48,7 +48,7 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,126,157,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,180,157,50,14
-    GROUPBOX        "Source Window",IDC_STATIC,7,7,287,35
+    GROUPBOX        "Source Window",IDC_STATIC,0,7,297,35
     LTEXT           "Position X:",IDC_STATIC,17,23,34,8
     EDITTEXT        IDC_SRCX,53,20,40,14,ES_AUTOHSCROLL | ES_NUMBER
     LTEXT           "Y:",IDC_STATIC,97,23,8,8
@@ -57,14 +57,14 @@ BEGIN
     EDITTEXT        IDC_SRCW,174,20,40,14,ES_AUTOHSCROLL | ES_NUMBER
     LTEXT           "Height:",IDC_STATIC,218,23,24,8
     EDITTEXT        IDC_SRCH,244,20,40,14,ES_AUTOHSCROLL | ES_NUMBER
-    GROUPBOX        "Destination Format",IDC_STATIC,6,46,288,38
+    GROUPBOX        "Destination Format",IDC_STATIC,0,46,297,38
     LTEXT           "Width:",IDC_STATIC,17,65,22,8
     EDITTEXT        IDC_DSTW,54,62,40,14,ES_AUTOHSCROLL | ES_NUMBER
     LTEXT           "Height:",IDC_STATIC,98,65,24,8
     EDITTEXT        IDC_DSTH,124,62,40,14,ES_AUTOHSCROLL | ES_NUMBER
     LTEXT           "Frame Rate:",IDC_STATIC,194,65,41,8
     COMBOBOX        IDC_COMBO_FRAMERATE,235,63,48,30,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
-    GROUPBOX        "H.264 Encoder",IDC_STATIC,6,90,288,54
+    GROUPBOX        "H.264 Encoder",IDC_STATIC,0,90,297,54
     LTEXT           "Profile:",IDC_STATIC,17,110,24,8
     COMBOBOX        IDC_COMBO_PROFILE,43,108,48,30,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Level:",IDC_STATIC,100,110,20,8
@@ -102,12 +102,23 @@ BEGIN
 END
 #endif    // APSTUDIO_INVOKED
 
-#endif    // Deutsch (Deutschland) resources
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_ENCODING_PRESET AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+#endif    // German (Germany) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
 /////////////////////////////////////////////////////////////////////////////
-// Englisch (USA) resources
+// English (United States) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
@@ -214,6 +225,7 @@ END
 // remains consistent on all systems.
 IDR_MAINFRAME           ICON                    "res\\MXPTiny.ico"
 
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // Version
@@ -263,7 +275,7 @@ BEGIN
     0
 END
 
-#endif    // Englisch (USA) resources
+#endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
