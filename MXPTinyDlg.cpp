@@ -837,14 +837,17 @@ void CMXPTinyDlg::OnBnClickedButtonRecord()
 	if (m_streamingDevice == NULL)
 	return;
 
-	if(m_recording) {
+	if(m_recording) 
+	{
 		if(m_fh != NULL) {
 			CloseHandle(m_fh);
 			m_fh=NULL;
 		}		
 		m_record_button.SetWindowTextW(_T("Record"));
 		m_recording=false;
-	} else {
+	} 
+	else 
+	{
 		if(!m_filename.IsEmpty()) {
 			if (m_timestampSuffix) {
 				auto rootName = m_filename.Left(m_filename.GetLength() - 3);

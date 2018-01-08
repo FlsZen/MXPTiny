@@ -79,6 +79,10 @@
             <DependentOn>C:\Users\matsk\Documents\RAD Studio\10.0\Imports\DecklinkPublicLib_TLB.h</DependentOn>
             <BuildOrder>2</BuildOrder>
         </CppCompile>
+        <CppCompile Include="BlackMagic.cpp">
+            <DependentOn>BlackMagic.h</DependentOn>
+            <BuildOrder>4</BuildOrder>
+        </CppCompile>
         <CppCompile Include="main.cpp">
             <BuildOrder>1</BuildOrder>
         </CppCompile>
