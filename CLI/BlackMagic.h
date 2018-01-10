@@ -14,14 +14,8 @@ class BlackMagic :	public IBMDStreamingDeviceNotificationCallback, public IBMDSt
     public:
 				    								        BlackMagic();
         void										        init();
-        // IUknown
-        // We need to correctly implement QueryInterface, but not the AddRef/Release
-        virtual HRESULT STDMETHODCALLTYPE			        QueryInterface (REFIID iid, LPVOID* ppv);
-        virtual ULONG STDMETHODCALLTYPE				        AddRef ()	{return 1;}
-        virtual ULONG STDMETHODCALLTYPE				        Release ()	{return 1;}
-		virtual HRESULT STDMETHODCALLTYPE 		  	        MPEG2TSPacketArrived(IBMDStreamingMPEG2TSPacket* mpeg2TSPacket);
 
-        // IBMDStreamingDeviceNotificationCallback
+        													// IBMDStreamingDeviceNotificationCallback
         virtual HRESULT STDMETHODCALLTYPE         	        StreamingDeviceArrived(IDeckLink* device);
         virtual HRESULT STDMETHODCALLTYPE         	        StreamingDeviceRemoved(IDeckLink* device);
         virtual HRESULT STDMETHODCALLTYPE         	        StreamingDeviceModeChanged(IDeckLink* device, BMDStreamingDeviceMode mode);
@@ -33,51 +27,54 @@ class BlackMagic :	public IBMDStreamingDeviceNotificationCallback, public IBMDSt
         virtual HRESULT STDMETHODCALLTYPE         	        H264VideoInputModeChanged(void);
 
 	protected:
-	    class dev
+	    class BMDevice
         {
             public:
-                IDeckLink						*device;
-                string 							name;
-                IBMDStreamingDeviceInput		*input;
-                BMDStreamingDeviceMode 			mode;
+                IDeckLink*						mDevice;
+                string 							mName;
+                IBMDStreamingDeviceInput*		mInput;
+                BMDStreamingDeviceMode 			mStreamingDeviceMode;
 		};
 
     	map<string, IBMDStreamingVideoEncodingMode*>        mEncodingModes;
-		DWORD										        m_presetIndex;
-        std::vector <dev> 				                    m_devs;
-        HANDLE                                              m_fh;
-        HANDLE                                              m_pipe;
-        string                                              m_filename;
-        string                                              m_vlcexe;
-        LARGE_INTEGER                                       m_tscount;
-        LARGE_INTEGER 	             	                    m_last_tscount;
-        DWORD 							                    m_bitrate;
-        int 							                    m_failCount;
-		BOOL						                        m_autorec;
-		BOOL							                    m_autopreview;
-		BOOL										        m_timestampSuffix;
-        string							                    m_deviceName;
+		DWORD										        mPresetIndex;
+        std::vector <BMDevice> 		  	                    mDevs;
+        HANDLE                                              mFh;
+        HANDLE                                              mPipe;
+        string                                              mFilename;
+        string                                              mVlcexe;
+        LARGE_INTEGER                                       mTscount;
+        LARGE_INTEGER 	             	                    mLast_tscount;
+        DWORD 							                    mBitrate;
+        int 							                    mFailCount;
+		BOOL						                        mAutorec;
+		BOOL							                    mAutopreview;
+		BOOL										        mTimestampSuffix;
+        string							                    mDeviceName;
 
-		IBMDStreamingDiscovery*			                    m_streamingDiscovery;
-        IDeckLink*						                    m_streamingDevice;
-        IBMDStreamingDeviceInput*		                    m_streamingDeviceInput;
-        bool							                    m_playing;
-        bool							                    m_recording;
-        BMDStreamingDeviceMode			                    m_deviceMode;
-        BMDVideoConnection				                    m_inputConnector;
-        BMDDisplayMode					                    m_inputMode;
+		IBMDStreamingDiscovery*			                    mStreamingDiscovery;
+        IDeckLink*						                    mStreamingDevice;
+        IBMDStreamingDeviceInput*		                    mStreamingDeviceInput;
+        bool							                    mPlaying;
+        bool							                    mRecording;
+        BMDStreamingDeviceMode			                    mDeviceMode;
+        BMDVideoConnection				                    mInputConnector;
+        BMDDisplayMode					                    mInputMode;
 
-		void 												OnBnClickedButtonRecord();
-        void							                    StartPreview();
-        void							                    StopPreview();
-        void							                    UpdateUIForNewDevice();
-        void							                    UpdateUIForNoDevice();
-        void							                    UpdateUIForModeChanges();
-        void							                    UpdateEncodingPresetsUIForInputMode();
-        void							                    EncodingPresetsRemoveItems();
-        void 							                    updBitrate();
-        void 							                    activate_device(int i);
+		void 												onBnClickedButtonRecord();
+        void							                    startPreview();
+        void							                    stopPreview();
+        void							                    updateUIForNewDevice();
+        void							                    updateUIForNoDevice();
+        void							                    updateUIForModeChanges();
+        void							                    updateEncodingPresetsUIForInputMode();
+        void 							                    activateDevice(int i);
 
+        													// We need to correctly implement QueryInterface, but not the AddRef/Release
+        virtual HRESULT STDMETHODCALLTYPE			        QueryInterface (REFIID iid, LPVOID* ppv);
+        virtual ULONG STDMETHODCALLTYPE				        AddRef ()	{return 1;}
+        virtual ULONG STDMETHODCALLTYPE				        Release ()	{return 1;}
+		virtual HRESULT STDMETHODCALLTYPE 		  	        MPEG2TSPacketArrived(IBMDStreamingMPEG2TSPacket* mpeg2TSPacket);
 };
 
 #endif

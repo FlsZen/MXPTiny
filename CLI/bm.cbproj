@@ -75,20 +75,17 @@
         <TASM_Debugging>None</TASM_Debugging>
     </PropertyGroup>
     <ItemGroup>
-        <CppCompile Include="C:\Users\matsk\Documents\RAD Studio\10.0\Imports\DecklinkPublicLib_TLB.cpp">
-            <DependentOn>C:\Users\matsk\Documents\RAD Studio\10.0\Imports\DecklinkPublicLib_TLB.h</DependentOn>
-            <BuildOrder>2</BuildOrder>
-        </CppCompile>
         <CppCompile Include="BlackMagic.cpp">
             <DependentOn>BlackMagic.h</DependentOn>
             <BuildOrder>4</BuildOrder>
         </CppCompile>
+        <CppCompile Include="DecklinkPublicLib_TLB.cpp">
+            <DependentOn>DecklinkPublicLib_TLB.h</DependentOn>
+            <BuildOrder>2</BuildOrder>
+        </CppCompile>
         <CppCompile Include="main.cpp">
             <BuildOrder>1</BuildOrder>
         </CppCompile>
-        <PCHCompile Include="Project1PCH1.h">
-            <BuildOrder>0</BuildOrder>
-        </PCHCompile>
         <CppCompile Include="..\DeckLinkAPI_i.c">
             <BuildOrder>3</BuildOrder>
         </CppCompile>
