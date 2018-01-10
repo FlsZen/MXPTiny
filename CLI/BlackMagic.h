@@ -14,8 +14,10 @@ class BlackMagic :	public IBMDStreamingDeviceNotificationCallback, public IBMDSt
     public:
 				    								        BlackMagic();
         void										        init();
+		void 												startRecording();
+		void 												stopRecording();
 
-        													// IBMDStreamingDeviceNotificationCallback
+        													//Override the following pure virtuals
         virtual HRESULT STDMETHODCALLTYPE         	        StreamingDeviceArrived(IDeckLink* device);
         virtual HRESULT STDMETHODCALLTYPE         	        StreamingDeviceRemoved(IDeckLink* device);
         virtual HRESULT STDMETHODCALLTYPE         	        StreamingDeviceModeChanged(IDeckLink* device, BMDStreamingDeviceMode mode);
@@ -37,20 +39,18 @@ class BlackMagic :	public IBMDStreamingDeviceNotificationCallback, public IBMDSt
 		};
 
     	map<string, IBMDStreamingVideoEncodingMode*>        mEncodingModes;
-		DWORD										        mPresetIndex;
-        std::vector <BMDevice> 		  	                    mDevs;
-        HANDLE                                              mFh;
+        std::vector <BMDevice> 		  	                    mDevices;
+        HANDLE                                              mFileHandle;
         HANDLE                                              mPipe;
         string                                              mFilename;
-        string                                              mVlcexe;
+        string                                              mVLCExecutable;
         LARGE_INTEGER                                       mTscount;
         LARGE_INTEGER 	             	                    mLast_tscount;
-        DWORD 							                    mBitrate;
+        DWORD 							                    mBitRate;
         int 							                    mFailCount;
-		BOOL						                        mAutorec;
-		BOOL							                    mAutopreview;
-		BOOL										        mTimestampSuffix;
-        string							                    mDeviceName;
+		BOOL						                        mAutoRecord;
+		BOOL							                    mAutoPreview;
+		BOOL										        mTimeStampSuffix;
 
 		IBMDStreamingDiscovery*			                    mStreamingDiscovery;
         IDeckLink*						                    mStreamingDevice;
@@ -58,16 +58,14 @@ class BlackMagic :	public IBMDStreamingDeviceNotificationCallback, public IBMDSt
         bool							                    mPlaying;
         bool							                    mRecording;
         BMDStreamingDeviceMode			                    mDeviceMode;
-        BMDVideoConnection				                    mInputConnector;
         BMDDisplayMode					                    mInputMode;
 
-		void 												onBnClickedButtonRecord();
-        void							                    startPreview();
-        void							                    stopPreview();
+        void							                    startCapture();
+        void							                    stopCapture();
+        void							                    reportDeviceModeChange();
         void							                    updateUIForNewDevice();
         void							                    updateUIForNoDevice();
-        void							                    updateUIForModeChanges();
-        void							                    updateEncodingPresetsUIForInputMode();
+        void							                    addAvailableEncodingModes();
         void 							                    activateDevice(int i);
 
         													// We need to correctly implement QueryInterface, but not the AddRef/Release

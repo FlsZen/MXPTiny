@@ -14,30 +14,29 @@ BlackMagic::BlackMagic()
 :
 	mStreamingDiscovery 	(NULL),
 	mStreamingDevice 		(NULL),
-	mStreamingDeviceInput  (NULL),
-	mFh 					(NULL),
+	mStreamingDeviceInput   (NULL),
+	mFileHandle 			(NULL),
 	mPipe 					(NULL),
 	mPlaying 				(false),
-	mRecording 			(false),
+	mRecording 				(false),
 	mDeviceMode 			(bmdStreamingDeviceUnknown),
-	mAutopreview 			(true),
-	mTimestampSuffix 		(true),
-	mFailCount 			(0),
-	mBitrate 				(50000),
-	mAutorec 				(true),
-    mPresetIndex			(0),
+	mAutoPreview 			(true),
+	mTimeStampSuffix 		(true),
+	mFailCount 				(0),
+	mBitRate 				(50000),
+	mAutoRecord  			(true),
     mFilename			   	("D:\\Temp\\bDeckLing.ts"),
-    mVlcexe				("")
+    mVLCExecutable	 		("C:\\Program Files (x86)\\VideoLAN\VLC\\vlc.exe stream://\\\\\\.\\pipe\\DeckLink.ts")
 {
 	Log(lInfo) << "Setting up a BlackMagic object instance..";
 }
 
 void BlackMagic::init()
 {
-	IBMDStreamingDiscovery*			mStreamingDiscovery = NULL;
+	IBMDStreamingDiscovery*	mStreamingDiscovery = NULL;
 
 	// Initialise Blackmagic Streaming API
-	HRESULT						result = -1;
+	HRESULT	result = -1;
 
      //Initialize the OLE libraries
 	CoInitialize(NULL);
@@ -131,11 +130,7 @@ HRESULT STDMETHODCALLTYPE BlackMagic::StreamingDeviceArrived(IDeckLink* device)
     Log(lDebug) << "Model Name is" << dest;
 	d.mName = dest;
 	d.mStreamingDeviceMode = bmdStreamingDeviceUnknown;
-	mDevs.push_back(d);
-
-	int newIndex = 0;//mVideoInputDeviceCombo.AddString(d.name);
-
-	//	mVideoInputDeviceCombo.SetItemDataPtr(newIndex, &d);
+	mDevices.push_back(d);
 
 	// Check we don't already have a device.
 	if (mStreamingDevice != NULL)
@@ -143,7 +138,7 @@ HRESULT STDMETHODCALLTYPE BlackMagic::StreamingDeviceArrived(IDeckLink* device)
 		return S_OK;
 	}
 
-	activateDevice(newIndex);
+	activateDevice(0);
 	return S_OK;
 }
 
@@ -155,32 +150,24 @@ HRESULT STDMETHODCALLTYPE BlackMagic::StreamingDeviceRemoved(IDeckLink* device)
     {
 		mStreamingDeviceInput = NULL;
 		mStreamingDevice = NULL;
-		stopPreview();
+		stopCapture();
 		shutdownactive = 1;
 	}
 
-	for (std::vector <BMDevice>::iterator d = mDevs.begin(); d != mDevs.end(); ++d )
+	for (std::vector <BMDevice>::iterator d = mDevices.begin(); d != mDevices.end(); ++d )
 	{
 		if(d->mDevice == device)
         {
 			d->mInput->SetCallback(NULL);
 			d->mInput->Release();
 			d->mDevice->Release();
-			mDevs.erase(d);
+			mDevices.erase(d);
 			break;
 		}
 	}
 
-//	int cursel=mVideoInputDeviceCombo.GetCurSel();
-//	mVideoInputDeviceCombo.ResetContent();
-//	for (std::vector <dev>::iterator d = mDevs.begin(); d != mDevs.end(); ++d )
-//	{
-//		int newIndex = mVideoInputDeviceCombo.AddString(d->name);
-//		mVideoInputDeviceCombo.SetItemDataPtr(newIndex, &d);
-//	}
-//	mVideoInputDeviceCombo.SetCurSel(cursel);
 //	if(shutdownactive) {
-//		if(mDevs.size() == 0 ) {
+//		if(mDevices.size() == 0 ) {
 //			UpdateUIForNoDevice();
 //		} else {
 //			activate_device(0);
@@ -197,18 +184,15 @@ void BlackMagic::activateDevice(int i)
 		mStreamingDeviceInput->SetCallback(NULL);
 	}
 
-	BMDevice d = mDevs.at(i);
-	mStreamingDevice = d.mDevice;
-	mStreamingDeviceInput = d.mInput;
-	mDeviceMode = d.mStreamingDeviceMode;
-	mDeviceName = d.mName;
+	BMDevice d 				= mDevices.at(i);
+	mStreamingDevice 		= d.mDevice;
+	mStreamingDeviceInput 	= d.mInput;
+	mDeviceMode 			= d.mStreamingDeviceMode;
 
 	if (mStreamingDeviceInput->GetCurrentDetectedVideoInputMode(&mInputMode) != S_OK)
     {
 		Log(lError) << "Failed to get current detected input mode";
     }
-
-	//mVideoInputDeviceCombo.SetCurSel(i);
 
 	// Now install our callbacks. To do this, we must query our own delegate
 	// to get it's IUnknown interface, and pass this to the device input interface.
@@ -224,34 +208,37 @@ void BlackMagic::activateDevice(int i)
 	// Finally release ourCallbackDelegate, since we created a reference to it
 	// during QueryInterface. The device will hold its own reference.
 	ourCallbackDelegate->Release();
+
 	updateUIForNewDevice();
 	if (mDeviceMode != bmdStreamingDeviceUnknown)
     {
-		updateUIForModeChanges();
+		reportDeviceModeChange();
 	}
 }
 
+//This is not really doing anything..
 void BlackMagic::updateUIForNewDevice()
 {
 	// Add video input modes:
 	IDeckLinkDisplayModeIterator* inputModeIterator;
 	if (FAILED(mStreamingDeviceInput->GetVideoInputModeIterator(&inputModeIterator)))
 	{
-		MessageBox(NULL, _T("Failed to get input mode iterator"), _T("error"), 0);
+		Log(lError) << "Failed to get input mode iterator";
 		return;
 	}
 
 	BMDDisplayMode currentInputModeValue;
 	if (FAILED(mStreamingDeviceInput->GetCurrentDetectedVideoInputMode(&currentInputModeValue)))
 	{
-		MessageBox(NULL, _T("Failed to get current detected input mode"), _T("error"), 0);
+		Log(lError) << "Failed to get current detected input mode";
 		return;
 	}
 
 	IDeckLinkDisplayMode* inputMode;
 	while (inputModeIterator->Next(&inputMode) == S_OK)
 	{
-		if (inputMode->GetDisplayMode() == currentInputModeValue) {
+		if (inputMode->GetDisplayMode() == currentInputModeValue)
+        {
 			BSTR modeName;
 			if (inputMode->GetName(&modeName) != S_OK)
 			{
@@ -259,18 +246,22 @@ void BlackMagic::updateUIForNewDevice()
 				inputModeIterator->Release();
 				return;
 			}
+            else
+            {
+            	Log(lInfo) << "Current display mode is: " << stdstr(modeName);
+            }
 			break;
 		}
 		inputMode->Release();
 	}
 
 	inputModeIterator->Release();
-	updateEncodingPresetsUIForInputMode();
+	addAvailableEncodingModes();
 }
 
 HRESULT STDMETHODCALLTYPE BlackMagic::StreamingDeviceModeChanged(IDeckLink* device, BMDStreamingDeviceMode mode)
 {
-	for(std::vector <BMDevice>::iterator d = mDevs.begin(); d != mDevs.end(); ++d )
+	for(std::vector <BMDevice>::iterator d = mDevices.begin(); d != mDevices.end(); ++d )
 	{
 		if(d->mDevice == device)
         {
@@ -291,79 +282,21 @@ HRESULT STDMETHODCALLTYPE BlackMagic::StreamingDeviceModeChanged(IDeckLink* devi
 
 	mDeviceMode = mode;
 
-	updateUIForModeChanges();
+	reportDeviceModeChange();
 	return S_OK;
 }
 
-void BlackMagic::stopPreview()
+void BlackMagic::reportDeviceModeChange()
 {
-//	mEncoding_static.SetWindowText(_T(""));
-	mPlaying = false;
-	mRecording = false;
-
-	if (mStreamingDeviceInput)
-    {
-		mStreamingDeviceInput->StopCapture();
-    }
-
-	if(mFh)
-    {
-//		mRecord_button.SetWindowTextW(_T("Record"));
-		CloseHandle(mFh);
-		mFh = NULL;
-	}
-	if(mPipe)
-    {
-		CloseHandle(mPipe);
-		mPipe = NULL;
-	}
-}
-
-void BlackMagic::updateUIForModeChanges()
-{
-//	CString status = _T(" (unknown)");
 	string status;
-
 	switch (mDeviceMode)
 	{
-		case bmdStreamingDeviceIdle:
-			status = _T(" (idle)");
-        break;
-		case bmdStreamingDeviceEncoding:
-			status = _T(" (encoding)");
-		break;
-		case bmdStreamingDeviceStopping:
-			status = _T(" (stopping)");
-		break;
+		case bmdStreamingDeviceIdle:	 status = "(idle)";     break;
+		case bmdStreamingDeviceEncoding: status = "(encoding)";	break;
+		case bmdStreamingDeviceStopping: status = "(stopping)";	break;
 	}
 
     Log(lInfo) <<"Streaming status: "<<status;
-//	CString displayName = _T("Device: ") + mDeviceName + status;
-//	mConfigBoxStatic.SetWindowText(displayName);
-//
-//	bool enablePresets = !mPlaying;/*mDeviceMode == bmdStreamingDeviceIdle && mInputMode != bmdModeUnknown;*/
-//	mVideoInputDeviceCombo.EnableWindow(enablePresets);
-//	mVideoEncodingCombo.EnableWindow(enablePresets);
-//	mBitrate_slider.EnableWindow(enablePresets);
-//	mPrevcfg_button.EnableWindow(enablePresets);
-//	mFolder_button.EnableWindow(!mRecording);
-//	mRecord_button.EnableWindow(!enablePresets);
-//	mButton_customize.EnableWindow(enablePresets);
-//
-//	bool enableStartStop = (mDeviceMode == bmdStreamingDeviceIdle || mDeviceMode == bmdStreamingDeviceEncoding);
-//	mStartButton.EnableWindow(enableStartStop);
-//
-//	bool start = /*!mPlaying;*/ mDeviceMode != bmdStreamingDeviceEncoding;
-//	mStartButton.SetWindowText(start ? _T("Preview") : _T("Stop"));
-	if (mDeviceMode == bmdStreamingDeviceEncoding)
-	{
-//		if (mInputMode != bmdModeUnknown)
-//			StartPreview();
-	}
-	else
-    {
-		stopPreview();
-    }
 }
 
 HRESULT STDMETHODCALLTYPE BlackMagic::MPEG2TSPacketArrived(IBMDStreamingMPEG2TSPacket* mpeg2TSPacket)
@@ -386,7 +319,7 @@ HRESULT STDMETHODCALLTYPE BlackMagic::MPEG2TSPacketArrived(IBMDStreamingMPEG2TSP
 			}
 		}
 
-		if(mFh != NULL && !WriteFile(mFh, buf, len, &dwBytesWritten, NULL))
+		if(mFileHandle != NULL && !WriteFile(mFileHandle, buf, len, &dwBytesWritten, NULL))
         {
 			rec_error = 1;
 		}
@@ -397,7 +330,7 @@ HRESULT STDMETHODCALLTYPE BlackMagic::MPEG2TSPacketArrived(IBMDStreamingMPEG2TSP
 			if(mRecording)
             {
 				LARGE_INTEGER FileSize;
-				GetFileSizeEx( mFh, &FileSize);
+				GetFileSizeEx( mFileHandle, &FileSize);
                 Log(lInfo) << "Recording (kB): "<< (FileSize.QuadPart>>10);
 			}
 		}
@@ -405,110 +338,104 @@ HRESULT STDMETHODCALLTYPE BlackMagic::MPEG2TSPacketArrived(IBMDStreamingMPEG2TSP
 	return S_OK;
 }
 
-HRESULT STDMETHODCALLTYPE BlackMagic::H264VideoInputConnectorScanningChanged(void)
-{
-	return E_NOTIMPL;
-}
-
-HRESULT STDMETHODCALLTYPE BlackMagic::H264VideoInputConnectorChanged(void)
-{
-	return E_NOTIMPL;
-}
 
 HRESULT STDMETHODCALLTYPE BlackMagic::H264VideoInputModeChanged(void)
 {
 	if (mStreamingDeviceInput->GetCurrentDetectedVideoInputMode(&mInputMode) != S_OK)
     {
-		MessageBox(NULL, _T("Failed to get current detected input mode"), _T("error"), 0);
+		Log(lError) << "Failed to get current detected input mode";
     }
 	else
 	{
-		updateEncodingPresetsUIForInputMode();
+		addAvailableEncodingModes();
 	}
 
-	if (mInputMode == bmdModeUnknown)
-	{
-	}
+	reportDeviceModeChange();
 
-	updateUIForModeChanges();
-
-	if((mAutorec || mAutopreview) && !mRecording)
+	if((mAutoRecord || mAutoPreview) && !mRecording)
     {
-		startPreview();
+		startCapture();
 	}
 
 	return S_OK;
 }
 
-
-HRESULT STDMETHODCALLTYPE BlackMagic::StreamingDeviceFirmwareUpdateProgress(IDeckLink* device, unsigned char percent)
-{
-	return S_OK;
-}
-
-HRESULT STDMETHODCALLTYPE BlackMagic::H264NALPacketArrived(IBMDStreamingH264NALPacket* nalPacket)
-{
-	return S_OK;
-}
-
-HRESULT STDMETHODCALLTYPE BlackMagic::H264AudioPacketArrived(IBMDStreamingAudioPacket* audioPacket)
-{
-	return S_OK;
-}
-
-void BlackMagic::startPreview()
+void BlackMagic::startCapture()
 {
 	if (mPlaying)
     {
+    	Log(lWarning) <<"Tried to start already playing device";
 		return;
     }
 
-	int iscustom = 0;
 	IBMDStreamingVideoEncodingMode* encodingMode = mEncodingModes["Native"];
 
-	int64_t rate = mBitrate;
+	int64_t rate = mBitRate;
+
 	IBMDStreamingMutableVideoEncodingMode *em;
 	encodingMode->CreateMutableVideoEncodingMode(&em);
 
 	em->SetInt(bmdStreamingEncodingPropertyVideoBitRateKbps, rate);
 	mStreamingDeviceInput->SetVideoEncodingMode(em);
-
-	if(!iscustom)
-    {
-		em->Release();
-	}
+	em->Release();
 
 	mStreamingDeviceInput->GetVideoEncodingMode(&encodingMode);
 	encodingMode->GetInt(bmdStreamingEncodingPropertyVideoBitRateKbps, &rate);
 	encodingMode->Release();
 
-	mBitrate = (DWORD)rate;
+	mBitRate = (DWORD)rate;
 	mPipe = CreateNamedPipe(_T("\\\\.\\pipe\\DeckLink.ts"), PIPE_ACCESS_OUTBOUND, PIPE_TYPE_BYTE | PIPE_NOWAIT | PIPE_ACCEPT_REMOTE_CLIENTS, 100, 188*1000, 188*1000, 0, NULL);
 
 	mPlaying = true;
 	mLast_tscount.QuadPart = 0;
 	mTscount.QuadPart = 0;
+
+    //Start capture stream.
 	mStreamingDeviceInput->StartCapture();
+
 	PROCESS_INFORMATION pi;
 	STARTUPINFO si;
-    ZeroMemory( &si, sizeof(si) );
+    ZeroMemory(&si, sizeof(si));
     si.cb = sizeof(si);
-    ZeroMemory( &pi, sizeof(pi) );
+    ZeroMemory(&pi, sizeof(pi));
 
-	if(!mAutorec)
+	if(!mAutoRecord)
     {
-		CreateProcessA( NULL, (char*) mVlcexe.c_str(), NULL, NULL, false, 0, NULL, NULL,  &si, &pi);
+		CreateProcessA(NULL, (char*) mVLCExecutable.c_str(), NULL, NULL, false, 0, NULL, NULL,  &si, &pi);
 	}
     else
     {
-		onBnClickedButtonRecord();
+		startRecording();
 	}
 
 	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);
 }
 
-void BlackMagic::updateEncodingPresetsUIForInputMode()
+void BlackMagic::stopCapture()
+{
+	mPlaying 	= false;
+	mRecording 	= false;
+
+	if (mStreamingDeviceInput)
+    {
+		mStreamingDeviceInput->StopCapture();
+    }
+
+	if(mFileHandle)
+    {
+		CloseHandle(mFileHandle);
+		mFileHandle = NULL;
+	}
+
+	if(mPipe)
+    {
+		CloseHandle(mPipe);
+		mPipe = NULL;
+	}
+}
+
+void BlackMagic::addAvailableEncodingModes()
 {
 	if (mStreamingDevice == NULL)
     {
@@ -528,24 +455,26 @@ void BlackMagic::updateEncodingPresetsUIForInputMode()
 		while (presetIterator->Next(&encodingMode) == S_OK)
 		{
 			encodingMode->GetName(&encodingModeName);
+            Log(lInfo) << "Adding mode: "<< stdstr(encodingModeName) <<" to available encoding modes";
             mEncodingModes[stdstr(encodingModeName)] = encodingMode;
 		}
 	}
 }
 
-void BlackMagic::onBnClickedButtonRecord()
+void BlackMagic::startRecording()
 {
 	if (mStreamingDevice == NULL)
     {
+    	Log(lError) << "Can't start recording. Streaming device is NULL";
 		return;
     }
 
 	if(mRecording)
     {
-		if(mFh != NULL)
+		if(mFileHandle != NULL)
         {
-			CloseHandle(mFh);
-			mFh=NULL;
+			CloseHandle(mFileHandle);
+			mFileHandle=NULL;
 		}
 		mRecording = false;
         Log(lInfo) << "Stopped recording";
@@ -555,19 +484,19 @@ void BlackMagic::onBnClickedButtonRecord()
 
 		if(mFilename.size())
         {
-			if (mTimestampSuffix)
+			if (mTimeStampSuffix)
             {
             	string path = getFilePath(mFilename);
 				string rootName = getFileNameNoExtension(mFilename);
 				string fileName  = joinPath(path, rootName) + getFormattedDateTimeString("_%Y%m%d_%H%M%S") + ".ts";
-				mFh = CreateFileA(fileName.c_str(), FILE_APPEND_DATA, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+				mFileHandle = CreateFileA(fileName.c_str(), FILE_APPEND_DATA, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
 			}
 			else
 			{
-				mFh = CreateFileA(mFilename.c_str(), FILE_APPEND_DATA, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+				mFileHandle = CreateFileA(mFilename.c_str(), FILE_APPEND_DATA, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
 			}
 
-			if(mFh != INVALID_HANDLE_VALUE)
+			if(mFileHandle != INVALID_HANDLE_VALUE)
             {
                 Log(lInfo) << "Started recording";
 				mRecording = true;
@@ -576,6 +505,13 @@ void BlackMagic::onBnClickedButtonRecord()
 	}
 }
 
+
+//========================================================================================================================================================
+HRESULT STDMETHODCALLTYPE BlackMagic::StreamingDeviceFirmwareUpdateProgress(IDeckLink* device, unsigned char percent)	{return E_NOTIMPL;}
+HRESULT STDMETHODCALLTYPE BlackMagic::H264NALPacketArrived(IBMDStreamingH264NALPacket* nalPacket)						{return E_NOTIMPL;}
+HRESULT STDMETHODCALLTYPE BlackMagic::H264AudioPacketArrived(IBMDStreamingAudioPacket* audioPacket)						{return E_NOTIMPL;}
+HRESULT STDMETHODCALLTYPE BlackMagic::H264VideoInputConnectorScanningChanged(void)										{return E_NOTIMPL;}
+HRESULT STDMETHODCALLTYPE BlackMagic::H264VideoInputConnectorChanged(void)												{return E_NOTIMPL;}
 
 std::string ConvertWCSToMBS(const wchar_t* pstr, long wslen);
 std::string stdstr(BSTR bstr)
