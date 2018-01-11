@@ -13,7 +13,8 @@ streamToVLCExecutable(false),
 recordToFile(false),
 outputFileName(""),
 autoStart(false),
-appendTimeStampToOutputFile(false)
+appendTimeStampToOutputFile(false),
+convertToMP4(false)
 {}
 
 string Usage(const string& prg)
@@ -26,6 +27,7 @@ string Usage(const string& prg)
     usage<<setfill('.');
     usage<<setw(25)<<"-version"                     <<" Prints the current version.\n\n";
     usage<<setw(25)<<"-a"           				<<" Start recording immediately.\n\n";
+    usage<<setw(25)<<"-c"           				<<" Convert outputfile to MP4, using ffmpeg, when finished.\n\n";
     usage<<setw(25)<<"-t"           				<<" Append a time stamp to outputfile name.\n\n";
     usage<<setw(25)<<"-f outputFilename"            <<" Write the stream to this file.\n\n";
     usage<<setw(25)<<"-usevlc"      		        <<" Pipe video stream to VLC.\n\n";

@@ -34,6 +34,11 @@ BlackMagic::~BlackMagic()
 	Log(lInfo) << "In BlackMagic destructor.";
 }
 
+string BlackMagic::getOutputFileName()
+{
+	return mFileName;
+}
+
 void BlackMagic::init()
 {
 	IBMDStreamingDiscovery*	mStreamingDiscovery = NULL;
@@ -262,8 +267,6 @@ void BlackMagic::activateDevice(int i)
 	ourCallbackDelegate->Release();
 
 	reportCurrentDisplayMode();
-//	captureAvailableEncodingModes();
-
 	if (mDeviceMode != bmdStreamingDeviceUnknown)
     {
 		reportDeviceModeChange();

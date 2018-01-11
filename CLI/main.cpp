@@ -13,7 +13,8 @@
 using namespace std;
 using namespace mtk;
 
-void ProcessCommandLineArguments(int argc, char* argv[], Args& args);
+void processCommandLineArguments(int argc, char* argv[], Args& args);
+void convertToMP4(const string& fName);
 int main(int argc, char* argv[])
 {
     mtk::LogOutput::mLogToConsole = true;
@@ -31,7 +32,7 @@ int main(int argc, char* argv[])
         }
 
 	    Log(lInfo) << "Processing commandline..";
-        ProcessCommandLineArguments(argc, argv, args);
+        processCommandLineArguments(argc, argv, args);
 
         //Create a blackmagic object instance
         BlackMagic bm(args.streamToVLCExecutable, args.appendTimeStampToOutputFile);
@@ -49,6 +50,7 @@ int main(int argc, char* argv[])
             }
         };
 
+
         if(args.autoStart)
         {
         	bm.startRecordingToFile(args.outputFileName);
@@ -63,8 +65,17 @@ int main(int argc, char* argv[])
             switch(c)
             {
                 case 'q': doExit = true;  									break;
-                case 'r': bm.startRecordingToFile(args.outputFileName);		break;
-                case 's': bm.stopRecordingToFile();							break;
+                case 'r':
+                	bm.startRecordingToFile(args.outputFileName);
+                break;
+                case 's':
+                	bm.stopRecordingToFile();
+                    string currFName = bm.getOutputFileName();
+                    if(args.convertToMP4)
+                    {
+                    	convertToMP4(currFName);
+                    }
+                break;
             }
 
             if(doExit)
@@ -83,7 +94,16 @@ int main(int argc, char* argv[])
 	return 0;
 }
 
-void ProcessCommandLineArguments(int argc, char* argv[], Args& args)
+
+void convertToMP4(const string& fName)
+{
+	//Spawn ffmpeg process to convert trasnport file to MP4
+
+
+}
+
+
+void processCommandLineArguments(int argc, char* argv[], Args& args)
 {
     char c;
 

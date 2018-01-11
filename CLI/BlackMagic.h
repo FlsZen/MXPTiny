@@ -27,6 +27,7 @@ class BlackMagic :	public IBMDStreamingDeviceNotificationCallback, public IBMDSt
 
 		void 												startRecordingToFile(const string& f = gEmptyString);
 		void 												stopRecordingToFile();
+        string												getOutputFileName();
 
         													//Need to override the following pure virtuals
         virtual HRESULT STDMETHODCALLTYPE         	        StreamingDeviceArrived(IDeckLink* device);
