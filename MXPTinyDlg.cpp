@@ -235,7 +235,7 @@ BOOL CMXPTinyDlg::OnInitDialog()
 	}
 
 	// Create background thread to service the automatic recording while a host is alive option
-	//AfxBeginThread(MonitorHostThreadProc, this);
+	AfxBeginThread(MonitorHostThreadProc, this);
 
 	// return TRUE unless you set the focus to a control
 	return TRUE;
@@ -787,11 +787,7 @@ HRESULT CMXPTinyDlg::MPEG2TSPacketArrived(IBMDStreamingMPEG2TSPacket* mpeg2TSPac
 			if(m_recording) {
 				LARGE_INTEGER FileSize;
 				GetFileSizeEx( m_fh, &FileSize);
-				str.Format(_T("%s    -    Recording (kB): % 6llu %s"), str, FileSize.QuadPart>>10, rec_error
-					 ?
-					_T("- ERROR WRITING !!!")
-					:
-					_T(""));
+				str.Format(_T("%s    -    Recording (kB): % 6llu %s"), str, FileSize.QuadPart>>10, rec_error?_T("- ERROR WRITING !!!"):_T(""));
 			}
 			m_encoding_static.SetWindowText(str);
 		}
@@ -837,17 +833,14 @@ void CMXPTinyDlg::OnBnClickedButtonRecord()
 	if (m_streamingDevice == NULL)
 	return;
 
-	if(m_recording) 
-	{
+	if(m_recording) {
 		if(m_fh != NULL) {
 			CloseHandle(m_fh);
 			m_fh=NULL;
 		}		
 		m_record_button.SetWindowTextW(_T("Record"));
 		m_recording=false;
-	} 
-	else 
-	{
+	} else {
 		if(!m_filename.IsEmpty()) {
 			if (m_timestampSuffix) {
 				auto rootName = m_filename.Left(m_filename.GetLength() - 3);
