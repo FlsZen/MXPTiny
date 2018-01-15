@@ -81,7 +81,7 @@
         <Manifest_File>None</Manifest_File>
         <Defines>POCO_STATIC;$(Defines)</Defines>
         <DynamicRTL>true</DynamicRTL>
-        <Debugger_RunParams>-f D:\\Temp\\BMOutput.ts -usevlc -a -c</Debugger_RunParams>
+        <Debugger_RunParams>-f D:\\Temp\\BMOutput.ts -usevlc -a -b1000</Debugger_RunParams>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <Defines>NDEBUG;$(Defines)</Defines>

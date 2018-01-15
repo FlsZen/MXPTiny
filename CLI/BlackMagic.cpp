@@ -13,10 +13,8 @@ std::string stdstr(BSTR wstr);
 BlackMagic::BlackMagic(bool vlcPreview, bool useTimeStamp)
 :
 	mPreviewOnVLC           (vlcPreview),
-	mStreamingDiscovery 	(NULL),
 	mStreamingDevice 		(NULL),
 	mStreamingDeviceInput   (NULL),
-	mDeckLinkIterator		(NULL),
 	mFileHandle 			(NULL),
 	mPipe 					(NULL),
 	mPlaying 				(false),
@@ -34,6 +32,12 @@ BlackMagic::~BlackMagic()
 	Log(lInfo) << "In BlackMagic destructor.";
 }
 
+void BlackMagic::setBitRate(int bitRate)
+{
+	Log(lInfo) << "Setting bitrate to: "<<bitRate;
+	mBitRate = bitRate;
+}
+
 string BlackMagic::getOutputFileName()
 {
 	return mFileName;
@@ -48,6 +52,7 @@ void BlackMagic::init()
 	CoInitialize(NULL);
     HRESULT result(-1);
 
+    IDeckLinkIterator* mDeckLinkIterator;
 	result = CoCreateInstance(CLSID_CDeckLinkIterator, NULL, CLSCTX_ALL, IID_IDeckLinkIterator, (void**)&mDeckLinkIterator);
 	if (FAILED(result))
 	{
@@ -532,6 +537,7 @@ void BlackMagic::reportDeviceModeChange()
 }
 
 
+//Don't care about these..
 //========================================================================================================================================================
 HRESULT STDMETHODCALLTYPE BlackMagic::StreamingDeviceFirmwareUpdateProgress(IDeckLink* device, unsigned char percent)	{return E_NOTIMPL;}
 HRESULT STDMETHODCALLTYPE BlackMagic::H264NALPacketArrived(IBMDStreamingH264NALPacket* nalPacket)						{return E_NOTIMPL;}

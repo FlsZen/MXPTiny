@@ -4,7 +4,6 @@
 #include <vector>
 #include "BlackMagic.h"
 #include "mtkLogger.h"
-#include "mtkStringUtils.h"
 #include "bmArgs.h"
 #include "mtkGetOptions.h"
 #include "mtkStopWatch.h"
@@ -29,23 +28,24 @@ int main(int argc, char* argv[])
             exit(0);
         }
 
-	    Log(lDebug5) << "Processing commandline..";
+	    Log(lDebug5) << "Processing commandline arguments.";
         processCommandLineArguments(argc, argv, args);
 
         //Create a blackmagic object instance
         BlackMagic bm(args.streamToVLCExecutable, args.appendTimeStampToOutputFile);
         bm.init();
+        bm.setBitRate(args.bitRate);
 
         //Waiting for device to get ready
         StopWatch sw;
         sw.start();
         while(bm.isDeviceReady() == false)
         {
-        	Sleep(50);
             if(sw.getElapsedTime() > Poco::Timespan::SECONDS * 3.)
             {
-            	throw(string("Device failed to get ready"));
+            	throw(string("Device is not ready"));
             }
+        	Sleep(50);
         };
 
         if(args.autoStart)
@@ -102,12 +102,16 @@ int main(int argc, char* argv[])
 void processCommandLineArguments(int argc, char* argv[], Args& args)
 {
     char c;
-    while ((c = getOptions(argc, argv, (const char*) ("tav:f:u:"))) != -1)
+    while ((c = getOptions(argc, argv, (const char*) ("tab:v:f:u:"))) != -1)
     {
         switch (c)
         {
         	case 'a':
                     args.autoStart = true;
+            break;
+
+        	case 'b':
+                    args.bitRate = toInt(string(mtk::optarg));
             break;
 
         	case 'u':
@@ -117,6 +121,7 @@ void processCommandLineArguments(int argc, char* argv[], Args& args)
                     args.streamToVLCExecutable = true;
                 }
             break;
+
             case ('f'):
                 if(string(mtk::optarg).size())
 		        {
@@ -124,6 +129,7 @@ void processCommandLineArguments(int argc, char* argv[], Args& args)
                 	Log(lInfo) << "Recording to file: " << args.outputFileName;
                 }
             break;
+
             case ('v'):
                 if(string(mtk::optarg) == "ersion" )
                 {
@@ -131,6 +137,7 @@ void processCommandLineArguments(int argc, char* argv[], Args& args)
                     exit(-1);
                 }
             break;
+
             case ('t'):
             	args.appendTimeStampToOutputFile = true;
                 Log(lInfo) << "Adding timestamp to output file name.";
@@ -156,6 +163,5 @@ void processCommandLineArguments(int argc, char* argv[], Args& args)
 }
 
 #pragma comment(lib, "mtkCommon.lib")
-#pragma comment(lib, "mtkMath.lib")
 #pragma comment(lib, "poco_foundation-static.lib")
 

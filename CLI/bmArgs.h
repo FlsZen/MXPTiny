@@ -15,6 +15,9 @@ class Args
 										//!Record the stream to a file with name outPutFileName
         bool                            recordToFile;
 
+										//!Set desired bitrate
+        int                             bitRate;
+
 										//!append timestamp to output file name
         bool                            appendTimeStampToOutputFile;
 
@@ -23,7 +26,6 @@ class Args
 
         								//!Start recording immediately
         bool							autoStart;
-
 
 										//!Record the stream to a file with name outPutFileName
         string                          outputFileName;

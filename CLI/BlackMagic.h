@@ -20,6 +20,7 @@ class BlackMagic :	public IBMDStreamingDeviceNotificationCallback, public IBMDSt
 		virtual	    								        ~BlackMagic();
         void										        init();
         void										        disconnect();
+        void												setBitRate(int bitRate);
 
         bool												isDeviceReady();
         void							                    startCapture();
@@ -53,9 +54,6 @@ class BlackMagic :	public IBMDStreamingDeviceNotificationCallback, public IBMDSt
         LARGE_INTEGER 	             	                    mLast_tscount;
         DWORD 							                    mBitRate;
 
-
-		IBMDStreamingDiscovery*			                    mStreamingDiscovery;
-        IDeckLinkIterator*									mDeckLinkIterator;
         IDeckLink*						                    mStreamingDevice;
         IBMDStreamingDeviceInput*		                    mStreamingDeviceInput;
         bool							                    mPlaying;
