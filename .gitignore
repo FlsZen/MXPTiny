@@ -20,3 +20,15 @@
 /ipch/
 *.aps
 /Release/
+*.obj
+*.ilc
+*.ild
+*.ilf
+*.ils
+*.#00
+*.exe
+*.map
+*.pch
+*.tds
+*.local
+*.dsk
