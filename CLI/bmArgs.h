@@ -15,9 +15,6 @@ class Args
 										//!Record the stream to a file with name outPutFileName
         bool                            recordToFile;
 
-										//!Record the stream to a file with name outPutFileName
-        bool                            convertToMP4;
-
 										//!append timestamp to output file name
         bool                            appendTimeStampToOutputFile;
 

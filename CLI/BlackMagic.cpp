@@ -467,7 +467,7 @@ HRESULT STDMETHODCALLTYPE BlackMagic::MPEG2TSPacketArrived(IBMDStreamingMPEG2TSP
 	DWORD dwBytesWritten;
 	if(!mPlaying)
     {
-    	Log(lError) << "MPEG package arrived, but we are not playing ??!";
+    	//Log(lError) << "MPEG package arrived, but we are not playing ??!";
     	return S_OK;
     }
     //Write to pipe..

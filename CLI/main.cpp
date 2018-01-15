@@ -1,25 +1,23 @@
 #pragma hdrstop
-#include "BlackMagic.h"
 #include <stdio.h>
 #include <iostream>
 #include <vector>
+#include "BlackMagic.h"
 #include "mtkLogger.h"
 #include "mtkStringUtils.h"
 #include "bmArgs.h"
 #include "mtkGetOptions.h"
 #include "mtkStopWatch.h"
 
-
 using namespace std;
 using namespace mtk;
 
 void processCommandLineArguments(int argc, char* argv[], Args& args);
-void convertToMP4(const string& fName);
+
 int main(int argc, char* argv[])
 {
     mtk::LogOutput::mLogToConsole = true;
     mtk::LogOutput::mShowLogLevel = false;
-    Log(lInfo) << "Entering streaming app";
     gLogger.setLogLevel(lInfo);
 	bool doContinue = true;
 	Args args;
@@ -31,7 +29,7 @@ int main(int argc, char* argv[])
             exit(0);
         }
 
-	    Log(lInfo) << "Processing commandline..";
+	    Log(lDebug5) << "Processing commandline..";
         processCommandLineArguments(argc, argv, args);
 
         //Create a blackmagic object instance
@@ -50,7 +48,6 @@ int main(int argc, char* argv[])
             }
         };
 
-
         if(args.autoStart)
         {
         	bm.startRecordingToFile(args.outputFileName);
@@ -58,28 +55,35 @@ int main(int argc, char* argv[])
 
         //We need to monitor standard in order to shut down streaming
         char c;
-        while (true)
+        while(true)
         {
             bool doExit(false);
             cin >> c;
             switch(c)
             {
-                case 'q': doExit = true;  									break;
+                case 'q':  //Just quit
+	                bm.stopCapture();
+                	doExit = true;
+                break;
+
                 case 'r':
                 	bm.startRecordingToFile(args.outputFileName);
                 break;
+
                 case 's':
                 	bm.stopRecordingToFile();
-                    string currFName = bm.getOutputFileName();
-                    if(args.convertToMP4)
-                    {
-                    	convertToMP4(currFName);
-                    }
                 break;
-            }
+
+                case 'e':  // exit gracefully
+	                bm.stopRecordingToFile();
+                	doExit = true;
+                break;
+             }
 
             if(doExit)
+            {
                 break;
+            }
         }
 
         //Disconnect device gracefully
@@ -95,18 +99,9 @@ int main(int argc, char* argv[])
 }
 
 
-void convertToMP4(const string& fName)
-{
-	//Spawn ffmpeg process to convert trasnport file to MP4
-
-
-}
-
-
 void processCommandLineArguments(int argc, char* argv[], Args& args)
 {
     char c;
-
     while ((c = getOptions(argc, argv, (const char*) ("tav:f:u:"))) != -1)
     {
         switch (c)
@@ -161,4 +156,6 @@ void processCommandLineArguments(int argc, char* argv[], Args& args)
 }
 
 #pragma comment(lib, "mtkCommon.lib")
+#pragma comment(lib, "mtkMath.lib")
 #pragma comment(lib, "poco_foundation-static.lib")
+
